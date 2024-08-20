@@ -1,0 +1,26 @@
+services:
+  # nginx
+  nginx:
+    build: ./nginx
+    volumes:
+      - ./nginx:/home/web/default:rw
+    environment: 
+      - FLASK_SERVER_ADDR=flask-app:5000
+    ports:
+      - "80:80"
+    depends_on:
+      - flask-app
+  
+  # flask-app
+  flask-app:
+    build: ./flask
+    container_name: flask-app
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=True
+    restart: on-failure
+    volumes:
+      - ./flask:/app:rw
+    ports: 
+      - '5000:5000'
+    command: python simple_app.py
