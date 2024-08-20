@@ -3,7 +3,7 @@ FROM nginx:1.20-alpine
 # Add bash for boot cmd
 RUN apk add bash
 
-# Add nginx.conf to container
+# Override the default nginx configuration file
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d
+COPY nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /home/web/default

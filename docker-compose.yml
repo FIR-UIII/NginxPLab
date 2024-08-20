@@ -2,6 +2,7 @@ services:
   # nginx
   nginx:
     build: ./nginx
+    container_name: nginx
     volumes:
       - ./nginx:/home/web/default:rw
     environment: 
