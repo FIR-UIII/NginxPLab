@@ -51,8 +51,35 @@ stream { # для балансировки TPC UDP
     Exploit: ` #` <br>
     Secure: ` #` <br>
 
-* proxy_set_header Upgrade & Connection
-    Why needed: proxy_set_header directive is often used to customize the headers that are sent to a proxied server.
+* No limits<br>
+    Why needed: Ограничение лимитов траффика<br>
+    Vulnerable: `if none` <br>
+    Exploit: ` #` <br>
+    Secure: 
+    ```
+    client_body_buffer_size <= 1M
+    client_max_body_size <= 1M
+    large_client_header_buffers_size <= 10K
+    ```<br>
+
+* Security misconfiguration<br>
+    Why needed: исключает стандартные ошибки<br>
+    Vulnerable: `if none` <br>
+    Exploit: ` #` <br>
+    Secure: 
+    ```
+    ssl on;
+    listen <port> ssl;
+    ssl_protocols ssl_ciphers ...;
+    ssl_stampling on;
+    server_tokens off;
+    $request_method
+    add_header X-Frame-Options sameorigin; X-XSS-Protection 1;
+    access_log on;
+    ```<br>
+
+* proxy_set_header Upgrade & Connection <br>
+    Why needed: proxy_set_header directive is often used to customize the headers that are sent to a proxied server.<br>
     Vulnerable: 
     ```
     location / {
