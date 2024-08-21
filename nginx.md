@@ -45,11 +45,11 @@ stream { # для балансировки TPC UDP
 ```
 
 # Security assessment
-* 
-    Why needed: 
-    Vulnerable: ` #`
-    Exploit: ` #`
-    Secure: ` #`
+* <br>
+    Why needed: <br>
+    Vulnerable: ` #` <br>
+    Exploit: ` #` <br>
+    Secure: ` #` <br>
 
 * proxy_set_header Upgrade & Connection
     Why needed: proxy_set_header directive is often used to customize the headers that are sent to a proxied server.
