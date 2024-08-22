@@ -1,4 +1,4 @@
-# NGINX security
+# NGINX basics
 
 ```
 nginx -t {-T} # проверить конфигурацию /etc/nginx/nginx.conf {+выводит сами конфигурации}
@@ -11,7 +11,7 @@ nginx -s {stop, quit, reload, reopen} # отправить сигнал маст
 /etc/nginx/conf.d/default.conf > определяет конфигурации HTTP сервера по умолчанию
 /var/log/nginx/ > журнал логов
 
-### Conf File
+### Default configuration
 ```
 http {
     server { # определяет поведение сервера (правила предоставления контента)
@@ -43,8 +43,75 @@ stream { # для балансировки TPC UDP
     }
 }
 ```
+# Authentication
+HTTP Basic Authentication
+```
+location / {
+        auth_basic          "Private site";
+        auth_basic_user_file conf.d/passwd;
+    }
+```
+JWT
+```
+location /api/ {
+        auth_jwt          "api";
+        auth_jwt_key_file conf/keys.json;
+    }
+```
+# Authorization / ACL
+Запрет по location URL. Правила пишутся по логиге iptables
+```
+    location /admin {
+            deny  10.0.0.1;
+            allow 10.0.0.0/20;
+            deny all;
+    }
+```
 
-# Security assessment
+# HTTP heades
+CORS
+```
+location / {
+    add_header 'Access-Control-Allow-Origin' 
+        '*.example.com';
+    add_header Strict-Transport-Security max-age=31536000;
+    }
+```
+
+# Session managment
+
+# Secret managment / Cache
+
+# TLS
+Client-Side Encryption for whole application
+```
+http { # All directives used below are also valid in stream
+        server {
+            listen 8433 ssl;
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_ciphers HIGH:!aNULL:!MD5;
+            ssl_certificate /etc/nginx/ssl/example.pem;
+            ssl_certificate_key /etc/nginx/ssl/example.key;
+            ssl_certificate /etc/nginx/ssl/example.ecdsa.crt;
+            ssl_certificate_key /etc/nginx/ssl/example.ecdsa.key;
+            ssl_session_cache shared:SSL:10m;
+            ssl_session_timeout 10m;
+} }
+```
+
+Upstream Encryption for URL path
+```
+location / {
+        proxy_pass https://upstream.example.com;
+        proxy_ssl_verify on;
+        proxy_ssl_verify_depth 2;
+        proxy_ssl_protocols TLSv1.2;
+    }
+```
+
+# Logs
+
+# Security assessment and misconfigurations
 * <br>
     Why needed: <br>
     Vulnerable: ` #` <br>
