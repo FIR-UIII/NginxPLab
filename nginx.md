@@ -43,6 +43,17 @@ stream { # для балансировки TPC UDP
     }
 }
 ```
+
+### Regex
+|regex|explanaitions|
+|----:|:------------|
+|`~`  |case-sensitive|
+|`~*` |case-insensitive|
+|`=`  |   exactly match|
+|`.(png|ico|gif|jpg|jpeg|css|js)$`|match all file types|
+|`^~` |  |
+|     |  |
+
 # Authentication
 HTTP Basic Authentication
 ```
