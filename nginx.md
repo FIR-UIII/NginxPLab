@@ -50,7 +50,7 @@ stream { # для балансировки TPC UDP
 |`~`  |case-sensitive|
 |`~*` |case-insensitive|
 |`=`  |   exactly match|
-|`.(png|ico|gif|jpg|jpeg|css|js)$`|match all file types|
+|`.(png\|ico\|gif\|jpg\|jpeg\|css\|js)$`|match all file types|
 |`^~` |  |
 |     |  |
 
