@@ -138,13 +138,13 @@ location / {
     client_body_buffer_size <= 1M
     client_max_body_size <= 1M
     large_client_header_buffers_size <= 10K
-    ```<br>
+    ```
 
 * Security misconfiguration<br>
     Why needed: исключает стандартные ошибки<br>
     Vulnerable: `if none` <br>
     Exploit: ` #` <br>
-    Secure: 
+    Secure:
     ```
     ssl on;
     listen <port> ssl;
@@ -154,11 +154,11 @@ location / {
     $request_method
     add_header X-Frame-Options sameorigin; X-XSS-Protection 1;
     access_log on;
-    ```<br>
+    ```
 
 * proxy_set_header Upgrade & Connection <br>
     Why needed: proxy_set_header directive is often used to customize the headers that are sent to a proxied server.<br>
-    Vulnerable: 
+    Vulnerable: <br>
     ```
     location / {
         proxy_pass http://backend:9999;
@@ -167,8 +167,8 @@ location / {
         proxy_set_header Connection $http_connection; # forwards the Connection header
     }
     ```
-    Exploit: `curl -k -v -X GET https://localhost/ -H "Upgrade: h2c" -H "Connection: Upgrade, HTTP2-Settings"`
-    Secure: # remove it 
+    Exploit: `curl -k -v -X GET https://localhost/ -H "Upgrade: h2c" -H "Connection: Upgrade, HTTP2-Settings"` <br>
+    Secure: # remove it <br>
     ```
     location / {
         proxy_pass http://backend:9999;
@@ -176,55 +176,55 @@ location / {
     }
     ```
 
-* proxy_pass and internal Directives
-    Why needed: The proxy_pass directive is used to forward requests to another server, while the internal directive ensures that certain locations are only accessible within Nginx
-    Vulnerable: `location /internal/ {internal; proxy_pass http://backend/internal/;}`
-    Exploit: `curl "http://example.com/internal/private-data"`
-    Secure: `add location /public/ {proxy_pass http://backend/public/;}`
+* proxy_pass and internal Directives <br>
+    Why needed: The proxy_pass directive is used to forward requests to another server, while the internal directive ensures that certain locations are only accessible within Nginx<br>
+    Vulnerable: `location /internal/ {internal; proxy_pass http://backend/internal/;}`<br>
+    Exploit: `curl "http://example.com/internal/private-data"`<br>
+    Secure: `add location /public/ {proxy_pass http://backend/public/;}`<br>
 
-* DNS Spoofing Vulnerability
-    Why needed: 
-    Vulnerable: `resolver 8.8.8.8;`
-    Exploit: ` #`
-    Secure: `resolver 127.0.0.1; #Additionally, ensure DNSSEC is used to validate DNS responses.`
+* DNS Spoofing Vulnerability<br>
+    Why needed: <br>
+    Vulnerable: `resolver 8.8.8.8;`<br>
+    Exploit: ` #`<br>
+    Secure: `resolver 127.0.0.1; #Additionally, ensure DNSSEC is used to validate DNS responses.`<br>
 
-* map Directive Default Value
-    Why needed: used to map one value to another, frequently for controlling access or other logic
-    Vulnerable: `map $uri $mappocallow {/map-poc/private 0;}`
-    Exploit: `curl "http://example.com/map-poc/undefined"`
-    Secure: `map $uri $mappocallow {default 0;} #Always specify a default value in the map directive:`
+* map Directive Default Value<br>
+    Why needed: used to map one value to another, frequently for controlling access or other logic<br>
+    Vulnerable: `map $uri $mappocallow {/map-poc/private 0;}`<br>
+    Exploit: `curl "http://example.com/map-poc/undefined"`<br>
+    Secure: `map $uri $mappocallow {default 0;} #Always specify a default value in the map directive:`<br>
 
-* X-Accel-Redirect: /.env
-    Why needed: 
-    Vulnerable: ` #`
-    Exploit: `curl -I "http://example.com" -H "X-Accel-Redirect: /.env"`
-    Secure: ` #`
+* X-Accel-Redirect: /.env<br>
+    Why needed: <br>
+    Vulnerable: ` #`<br>
+    Exploit: `curl -I "http://example.com" -H "X-Accel-Redirect: /.env"`<br>
+    Secure: ` #`<br>
 
-* merge_slashes set to off
-    Why needed: By default, Nginx's merge_slashes directive is set to on
-    Vulnerable: ` #`
-    Exploit: `http://example.com//etc/passwd`
-    Secure: `http {merge_slashes off;}#`
+* merge_slashes set to off<br>
+    Why needed: By default, Nginx's merge_slashes directive is set to on<br>
+    Vulnerable: ` #`<br>
+    Exploit: `http://example.com//etc/passwd`<br>
+    Secure: `http {merge_slashes off;}#`<br>
 
-* Missing Root Location   
-    Why needed: определяет директорию для выдачи контента. Если не задана - выдает из /etc/nginx/
-    Vulnerable: `server {root /etc/nginx/;} # no root`
-    Exploit: `curl http://example.com/passwd`
-    Secure: `server {root /var/www/html;}`
+* Missing Root Location <br>
+    Why needed: определяет директорию для выдачи контента. Если не задана - выдает из /etc/nginx/<br>
+    Vulnerable: `server {root /etc/nginx/;} # no root`<br>
+    Exploit: `curl http://example.com/passwd`<br>
+    Secure: `server {root /var/www/html;}`<br>
 
-* Unsafe Path Restriction    
-    Why needed: ограничение и политика запросов
-    Vulnerable: `location = /admin { deny all; }`
-    Exploit: `curl http://example.com/%61dmin /admin%00 /admin. /ADMIN`
-    Secure: `location ~* ^/admin(/|$) {deny all;}`
+* Unsafe Path Restriction <br>
+    Why needed: ограничение и политика запросов<br>
+    Vulnerable: `location = /admin { deny all; }` <br>
+    Exploit: `curl http://example.com/%61dmin /admin%00 /admin. /ADMIN` <br>
+    Secure: `location ~* ^/admin(/|$) {deny all;}` <br>
 
-* Unsafe Use of Variables: $uri and $document_uri
-    Why needed: Используются для захвата данных из URL
-    Vulnerable: `return 302 https://example.com$uri;`
-    Exploit: `curl http://localhost/%0d%0aDetectify:%20clrf`
-    Secure: `return 302 https://example.com$request_uri; # use $request_uri`
+* Unsafe Use of Variables: $uri and $document_uri <br>
+    Why needed: Используются для захвата данных из URL <br>
+    Vulnerable: `return 302 https://example.com$uri;` <br>
+    Exploit: `curl http://localhost/%0d%0aDetectify:%20clrf` <br>
+    Secure: `return 302 https://example.com$request_uri; # use $request_uri` <br>
 
-* Regex Vulnerabilities
-    Why needed:
-    Vulnerable: `location ~ /docs/([^/])? { … $1 … } # does not check for spaces`
-    How safe: `location ~ /docs/([^/\s])? { … $1 … }  # not vulnerable (checks for spaces)`
+* Regex Vulnerabilities <br>
+    Why needed: <br>
+    Vulnerable: `location ~ /docs/([^/])? { … $1 … } # does not check for spaces` <br>
+    How safe: `location ~ /docs/([^/\s])? { … $1 … }  # not vulnerable (checks for spaces)` <br>
