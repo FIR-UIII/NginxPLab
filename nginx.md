@@ -62,6 +62,7 @@ location / {
         auth_basic_user_file conf.d/passwd;
     }
 ```
+
 JWT
 ```
 location /api/ {
@@ -129,18 +130,58 @@ location / {
     Exploit: ` #` <br>
     Secure: ` #` <br>
 
-* No limits<br>
+* SSRF <br>
+    Why needed: уязвимость позволяющая выполнять различного рода запросы от Nginx<br>
+    Vulnerable: 
+    ```
+    # отсутствие директивы internal
+    location ~ /proxy/(.*)/(.*)/(.*)$ {
+        proxy_pass $1://$2/$3;}
+   
+    # небезопасное внутреннее перенаправление proxy_pass.
+    location ~* ^/internal-proxy/(?<proxy_proto>https?)/(?<proxy_host>.*?)/(?<proxy_path>.*)$ {
+        internal;
+        proxy_pass $proxy_proto://$proxy_host/$proxy_path ;
+        proxy_set_header Host $proxy_host;}
+    ``` <br>
+    Exploit: ` #` <br>
+    Secure: ` #` <br>
+
+* host_spoofing Подделка заголовка запроса Host <br>
+    Why needed: проброс заголовка host приложению за прокси <br>
+    Vulnerable: 
+    ```
+    location @app {
+        proxy_set_header Host $http_host;
+        proxy_pass http://...;} 
+    ``` <br>
+    Exploit: ` #` <br>
+    Secure: ` #` перечислить корректные имена сервера в директиве server_name; всегда использовать переменную $host, вместо $http_host. <br>
+
+* LFI \ Path travers in alias location <br>
+    Why needed: Директива alias используется для замены пути указанного локейшена <br>
+    Vulnerable: `location /imgs {alias /path/images/;}` запрос /img/1.gif будет отдан файл /path/images/1.gif <br>
+    Exploit: `curl /imgs../../../etc/passwd` <br>
+    Secure: `location /imgs {alias /path/images/;}` необходимо найти все директивы alias и убедится что префиксный локейшен оканчивается на `/` <br>
+
+* No limits against DDoS <br>
     Why needed: Ограничение лимитов траффика<br>
     Vulnerable: `if none` <br>
     Exploit: ` #` <br>
     Secure: 
     ```
+    limit_req_zone $binary_remote_addr zone=one:10m rate=30r/m; # ограничение до 30запр./мин. количество запросов от одного адреса
+    ...
+    location /login.html {limit_req zone=one;} # применение ограничения к конкретному пути
+
+    client_body_timeout 5s; # таймауты которые не позволят соединениям висеть слишком долго
+    client_header_timeout 5s; # таймауты которые не позволят соединениям висеть слишком долго
     client_body_buffer_size <= 1M
     client_max_body_size <= 1M
     large_client_header_buffers_size <= 10K
     ```
 
-* Security misconfiguration<br>
+* SSL and HTTP header misconfiguration<br>
     Why needed: исключает стандартные ошибки<br>
     Vulnerable: `if none` <br>
     Exploit: ` #` <br>
