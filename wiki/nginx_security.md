@@ -1,49 +1,3 @@
-# NGINX basics
-
-```
-nginx -t {-T} # проверить конфигурацию /etc/nginx/nginx.conf {+выводит сами конфигурации}
-ps -ef | grep nginx # проверить работу процесов master и workers
-nginx -s {stop, quit, reload, reopen} # отправить сигнал мастер процессу
-```
-
-### NGINX files and directories
-/etc/nginx/nginx.conf > основной конфигурационный файл для всего сервера
-/etc/nginx/conf.d/default.conf > определяет конфигурации HTTP сервера по умолчанию
-/var/log/nginx/ > журнал логов
-
-### Default configuration
-```
-http {
-    server { # определяет поведение сервера (правила предоставления контента)
-        listen 80 default_server; # определяет порт для прослушивания
-        server_name www.example.com; #
-        
-        location / { #
-            root /usr/share/nginx/html; # определяет директорию предоставления HTTP контента
-            # alias /usr/share/nginx/html; #
-            index index.html index.htm; #
-        } 
-    }
-}    
-```
-### Load balancer configuration
-```
-upstream backend { # директива опредяет балансировку между серверами
-        server 10.10.12.45:80      weight=1; # weight определяет 
-        server app.example.com:80  weight=2;
-    }
-```
-### TCP UDP Load Balancing
-```
-stream { # для балансировки TPC UDP
-        upstream mysql_read {
-            server read1.example.com:3306  weight=5
-            server read2.example.com:3306;
-            server 10.10.12.34:3306 backup;
-    }
-}
-```
-
 ### Regex
 |regex|explanaitions|
 |----:|:------------|
@@ -80,13 +34,17 @@ location /api/ {
     }
 ```
 
-# HTTP heades
+# HTTP security headers
 CORS
 ```
 location / {
     add_header 'Access-Control-Allow-Origin' 
         '*.example.com';
-    add_header Strict-Transport-Security max-age=31536000;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self';" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
     }
 ```
 
@@ -99,19 +57,24 @@ Client-Side Encryption for whole application
 ```
 http { # All directives used below are also valid in stream
         server {
-            listen 8433 ssl;
+            listen 433 ssl;
+            server_name example.com;
+            ssl_certificate /etc/nginx/ssl/nginx.crt;
+            ssl_certificate_key /etc/nginx/ssl/nginx.key;
             ssl_protocols TLSv1.2 TLSv1.3;
-            ssl_ciphers HIGH:!aNULL:!MD5;
-            ssl_certificate /etc/nginx/ssl/example.pem;
-            ssl_certificate_key /etc/nginx/ssl/example.key;
-            ssl_certificate /etc/nginx/ssl/example.ecdsa.crt;
-            ssl_certificate_key /etc/nginx/ssl/example.ecdsa.key;
+            ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+            ssl_prefer_server_ciphers on;
             ssl_session_cache shared:SSL:10m;
             ssl_session_timeout 10m;
-} }
+            location / <...>}
+        server {
+            listen 80; # Redirect HTTP to HTTPS
+            server_name example.com;
+            return 301 https://$host$request_uri;}
+}
 ```
 
-Upstream Encryption for URL path
+### Upstream Encryption for URL path
 ```
 location / {
         proxy_pass https://upstream.example.com;
@@ -119,6 +82,24 @@ location / {
         proxy_ssl_verify_depth 2;
         proxy_ssl_protocols TLSv1.2;
     }
+```
+
+# Rate Limiting
+```
+# Limits requests to 10 per second, with a burst of 5 requests allowed
+http {
+    limit_req_zone $binary_remote_addr zone=one:10m rate=10r/s;
+    server {
+        location /login {
+            limit_req zone=one burst=5 nodelay;
+            proxy_pass http://127.0.0.1:8080;
+            client_body_buffer_size 16K;
+            client_max_body_size 10M;
+            client_header_buffer_size 1k;
+            large_client_header_buffers 4 16k;
+        }
+    }
+}
 ```
 
 # Logs
